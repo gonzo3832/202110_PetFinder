@@ -1,0 +1,80 @@
+#######################################################
+# resnest_v8
+# mixup を入れる
+#######################################################
+globals:
+  debug: False
+  comment: base line
+  seed: 42
+  device: cuda
+  num_epochs: 60
+  use_amp: False
+
+
+data:
+  train_df_path: input/petfinder-pawpularity-score/train.csv
+  train_data_dir: input/petfinder-pawpularity-score/train
+  test_df_path: input/petfinder-pawpularity-score/test.csv
+  test_data_dir: input/petfinder-pawpularity-score/test
+
+split:
+  name: StratifiedKFold
+  params:
+    n_splits: 4
+    random_state: 42
+    shuffle: True
+
+dataset:
+  name: DefaultDataset
+  params:
+      img_size: 256
+      aug: True
+  
+
+loader:
+  train:
+    batch_size: 8
+    shuffle: True
+    num_workers: 8
+  valid:
+    batch_size: 8
+    shuffle: False
+    num_workers: 8
+  test:
+    batch_size: 1
+    shuffle: False
+    num_workers: 8
+  
+
+model:
+  name: EffNetV2_b0
+  params:
+    num_classes: 1
+
+loss:
+  name: MSELoss
+  params:
+optimizer:
+  name: Adam
+  params:
+    lr: 0.001
+
+scheduler:
+  name: CosineAnnealingLR
+  params:
+    T_max: 10
+
+early_stopping:
+  patience: 6
+  delta: 0
+
+hydra:
+  run:
+    dir: ./data/hydra_outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}/try0
+  sweep:
+    dir: ./data/hydra_outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: try${hydra.job.num}
+  job_logging:
+    formatters:
+      simple:
+        format: '[%(asctime)s][%(name)s] line%(lineno)d [%(levelname)s] %(message)s'

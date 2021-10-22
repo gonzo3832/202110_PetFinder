@@ -1,0 +1,6 @@
+.DS_Store
+data/
+data_ignore/
+docker-compose.yml
+model_paths.pkl
+input/
