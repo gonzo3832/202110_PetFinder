@@ -7,7 +7,7 @@ globals:
   comment: base line
   seed: 42
   device: cuda
-  num_epochs: 60
+  num_epochs: 100
   use_amp: False
 
 
@@ -49,7 +49,7 @@ loader:
 model:
   name: EffNetV2_b0
   params:
-    num_classes: 1
+    num_classes: 2
 
 loss:
   name: BCEWithLogitsLoss
