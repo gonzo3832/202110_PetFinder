@@ -33,11 +33,11 @@ dataset:
 
 loader:
   train:
-    batch_size: 8
+    batch_size: 32
     shuffle: True
     num_workers: 8
   valid:
-    batch_size: 8
+    batch_size: 16
     shuffle: False
     num_workers: 8
   test:
@@ -52,7 +52,7 @@ model:
     num_classes: 1
 
 loss:
-  name: MSELoss
+  name: BCEWithLogitsLoss
   params:
 optimizer:
   name: Adam

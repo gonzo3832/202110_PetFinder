@@ -44,6 +44,7 @@ def run (cfg: DictConfig) -> None:
     assert comment!=None, 'commentを入力してください。(globals.commet=hogehoge)'
     #  assert は条件式がFalseの時に、メッセージを返す。この場合、コメントがない時にメッセージが出る
     df, datadir = C.get_metadata(cfg)
+    print(df.head())
     if cfg['globals']['debug']:
         logger.info('::: set debug mode :::')
         cfg = utils.get_debug_config(cfg)
@@ -70,7 +71,11 @@ def run (cfg: DictConfig) -> None:
         logger.info(f'Fold{fold_i}')
         logger.info('='*30)
         trn_df = df.loc[trn_idx, :].reset_index(drop=True)
+        trn_df = utils.min_max_normalize(trn_df,'Pawpularity',0,100)
         val_df = df.loc[val_idx, :].reset_index(drop=True)
+        val_df = utils.min_max_normalize(val_df,'Pawpularity',0,100)
+        
+        # splitter 前で正規化すると謎のエラー吐いた（おそらく少数は層化抽出できない）
         logger.info(f'trn_df: {trn_df.shape}')
         logger.info(f'val_df: {val_df.shape}')
         train_loader = C.get_loader(trn_df, datadir, cfg, 'train')
@@ -152,6 +157,7 @@ def run (cfg: DictConfig) -> None:
         preds = predict(model, device, test_loader)
         preds_sum += preds
     preds /= n_splits
+    preds *= 100
     
     #test_df = utils.ensemble(test_df, 2, 'MGMT_value')
     test_df['Pawpularity']=preds
@@ -161,7 +167,6 @@ def run (cfg: DictConfig) -> None:
 
     
     logger.info('::: success :::\n\n\n')
-    #test
 
 if __name__ == "__main__":
     run()

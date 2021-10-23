@@ -50,6 +50,12 @@ def ensemble(df, n_ignore_columns: int, name_ens_column: str)-> pd.DataFrame:
     return df
 
 
+def min_max_normalize(df,target_column,min,max):
+    df[target_column] = (df[target_column]-min)/(max-min)
+    return df
+
+
+
 
 def main():
     logger = logging.getLogger(__name__)
@@ -64,6 +70,10 @@ def main():
 
 if __name__ == '__main__':
     main()
-#    df = pd.read_csv('input/petfinder-pawpularity-score/train.csv')
+    df = pd.read_csv('input/petfinder-pawpularity-score/train.csv')
+    df = min_max_normalize(df,'Pawpularity',0,100)
+    print(df.head())
 #    df = get_debug_df(df)
 #    print(df.head(50))
+
+

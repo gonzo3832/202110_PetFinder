@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import sys
 import timm
+from torchsummary import summary
 
 def get_model(config):
     model_config = config["model"]
@@ -25,4 +26,9 @@ class EffNetV2_b0(nn.Module):
         out = self.model(x)
         return out
 
+
+if __name__ == '__main__':
+    params = {'num_classes' : 1}
+    model = EffNetV2_b0(params)
+    summary(model,(3,256,256))
 
