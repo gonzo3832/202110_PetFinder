@@ -55,6 +55,9 @@ def min_max_normalize(df,target_column,min,max):
     return df
 
 
+def RMSELoss(yhat,y):
+    return torch.sqrt(torch.mean((yhat-y)**2))
+
 
 
 def main():
@@ -66,6 +69,7 @@ def main():
     logger.info('hello')
 
     set_seed()
+
 
 
 if __name__ == '__main__':

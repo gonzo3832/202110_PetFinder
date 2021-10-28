@@ -87,8 +87,11 @@ def run (cfg: DictConfig) -> None:
         scheduler = C.get_scheduler(optimizer, cfg)
         losses_train = []
         losses_valid = []
+        losses_rmse_train = []
+        losses_rmse_valid = []
         epochs = []
         best_loss = 0
+        best_loss_rmse = 0
         model_path = f'{output_dir_ignore}/{model.__class__.__name__}_fold{fold_i}.pth'
         model_paths[fold_i] = model_path
         early_stopping = EarlyStopping(**cfg['early_stopping'],verbose=True, path=model_path,device=device)
@@ -96,28 +99,35 @@ def run (cfg: DictConfig) -> None:
         for epoch in progress_bar(range(1,n_epoch+1)):
             logger.info(f'::: epoch: {epoch}/{n_epoch} :::')
             
-            loss_train = train(
+            loss_train ,loss_rmse_train= train(
                 model, device, train_loader, optimizer,
                 scheduler, criterion, cfg['globals']['use_amp']
             )    
             
-            loss_valid = get_epoch_loss_score(
+            loss_valid ,loss_rmse_valid = get_epoch_loss_score(
                 model, device, valid_loader, criterion
             )
-            logger.info(f'loss_train: {loss_train:.4f}, loss_valid: {loss_valid:.4f}')
+            logger.info(f'loss_train: {loss_train:.4f}, loss_valid: {loss_valid:.4f},loss_rmse_train: {loss_rmse_train:.4f}, loss_rmse_valid: {loss_rmse_valid:.4f}')
             epochs.append(epoch)
             losses_train.append(loss_train)
             losses_valid.append(loss_valid)
+            losses_rmse_train.append(loss_rmse_train)
+            losses_rmse_valid.append(loss_rmse_valid)
+
             is_update = early_stopping(loss_valid, model, debug=False)
             if is_update:
                 best_loss = loss_valid
+                best_loss_rmse = loss_rmse_valid
             if early_stopping.early_stop:
                 logger.info("Early stopping")
                 break
         rh.save_loss_figure(
             fold_i,
             epochs, losses_train,
-            losses_valid, output_dir
+            losses_valid, 
+            losses_rmse_train,
+            losses_rmse_valid,
+            output_dir
         )
         rh.save_result_csv(
             fold_i,
@@ -125,6 +135,7 @@ def run (cfg: DictConfig) -> None:
             f'model.__class__.__name__',
             cfg['loss']['name'], 
             best_loss, 
+            best_loss_rmse,
             comment,
             output_dir
         )
