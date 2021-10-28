@@ -49,7 +49,7 @@ loader:
 model:
   name: EffNetV2_b0
   params:
-    num_classes: 2
+    num_classes: 1
 
 loss:
   name: BCEWithLogitsLoss

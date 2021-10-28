@@ -43,27 +43,15 @@ class DefaultDataset(data.Dataset):
 
         if self.phase == 'train':
             data = self.transform(data)
-            target = [0]*2
-            paw = self.df['Pawpularity'].values[idx]
-            if  paw < 0.5:
-                target[0] = paw
-                target[1] = 1 - paw
-            else :
-                target [0] = 1 - paw
-                target [1] = paw 
-            return data.float(),torch.tensor(target).float()
+            target = self.df['Pawpularity'].values[idx]
+
+            return data.float(), torch.tensor(target).float()
             
         elif self.phase == 'valid':
             data = self.transform(data)
-            target = [0]*2
-            paw = self.df['Pawpularity'].values[idx]
-            if  paw < 0.5:
-                target[0] = paw
-                target[1] = 1 - paw
-            else :
-                target [0] = 1 - paw
-                target [1] = paw 
-            return data.float(),torch.tensor(target).float()
+            target = self.df['Pawpularity'].values[idx]
+
+            return data.float(), torch.tensor(target).float()
         else:
             data = self.transform(data)
             return data.float()
