@@ -49,6 +49,7 @@ def train_fastprogress(model, device, train_loader, optimizer, scheduler, loss_f
 
     loader = train_loader.__iter__()
     for _ in progress_bar(range(len(loader)),parent=mb): 
+        
         data,target = loader.next()
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
@@ -58,6 +59,7 @@ def train_fastprogress(model, device, train_loader, optimizer, scheduler, loss_f
             rmse_loss = RMSELoss(output.view_as(target), target)*100
             
         
+        optimizer.zero_grad()
         scaler.scale(loss).backward
         scaler.step(optimizer)
         scaler.update()
