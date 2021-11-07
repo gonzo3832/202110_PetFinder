@@ -1,72 +1,61 @@
 globals:
-  debug: False
-  comment: base line
-  seed: 42
+  comment: aa
+  debug: false
   device: cuda
+  ex_name: 000_base_line_search
   num_epochs: 100
-  use_amp: False
-
-
+  seed: 42
+  use_amp: false
+model:
+  name: EffNetV2_b0
+  params:
+    num_classes: 1
 data:
-  train_df_path: input/petfinder-pawpularity-score/train.csv
-  train_data_dir: input/petfinder-pawpularity-score/train
-  test_df_path: input/petfinder-pawpularity-score/test.csv
   test_data_dir: input/petfinder-pawpularity-score/test
-
+  test_df_path: input/petfinder-pawpularity-score/test.csv
+  train_data_dir: input/petfinder-pawpularity-score/train
+  train_df_path: input/petfinder-pawpularity-score/train.csv
+dataset:
+  name: DefaultDataset
+  params:
+    aug: true
+    img_size: 256
+loader:
+  test:
+    batch_size: 1
+    num_workers: 8
+    shuffle: false
+  train:
+    batch_size: 32
+    num_workers: 8
+    shuffle: true
+  valid:
+    batch_size: 16
+    num_workers: 8
+    shuffle: false
 split:
   name: StratifiedKFold
   params:
     n_splits: 4
     random_state: 42
-    shuffle: True
-
-dataset:
-  name: DefaultDataset
-  params:
-      img_size: 256
-      aug: True
-  
-
-loader:
-  train:
-    batch_size: 32
-    shuffle: True
-    num_workers: 8
-  valid:
-    batch_size: 16
-    shuffle: False
-    num_workers: 8
-  test:
-    batch_size: 1
-    shuffle: False
-    num_workers: 8
-  
-
-model:
-  name: EffNetV2_b0
-  params:
-    num_classes: 1
-
+    shuffle: true
 loss:
   name: BCEWithLogitsLoss
-  params:
+  params: null
 optimizer:
   name: Adam
   params:
     lr: 0.001
-
 scheduler:
   name: CosineAnnealingLR
   params:
     T_max: 10
-
 early_stopping:
-  patience: 6
   delta: 0
-
+  patience: 6
 hydra:
   run:
-    dir: ./data/hydra_outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}/try0
+    dir: ./outputs/${globals.ex_name}/${now:%y%m%d}-${globals.comment}
   sweep:
     dir: ./data/hydra_outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
     subdir: try${hydra.job.num}
@@ -74,3 +63,4 @@ hydra:
     formatters:
       simple:
         format: '[%(asctime)s][%(name)s] line%(lineno)d [%(levelname)s] %(message)s'
+

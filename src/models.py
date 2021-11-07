@@ -24,7 +24,7 @@ class EffNetV2_b0(nn.Module):
 
     def forward(self,x):
         out = self.model(x)
-        return out
+        return out.squeeze()
 
 
 if __name__ == '__main__':

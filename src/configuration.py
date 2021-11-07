@@ -16,7 +16,10 @@ import criterion
 '''
 
 def get_device(device: str):
-    return torch.device(device)
+    if torch.cuda.is_available():
+        return 'cuda'
+    else:
+        return 'cpu'
 
 def get_split(config: dict):
     split_config = config["split"]
