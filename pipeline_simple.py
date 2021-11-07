@@ -51,6 +51,7 @@ def run (cfg: DictConfig) -> None:
     utils.set_seed(global_params['seed'])
     device = C.get_device(global_params["device"])
     splitter = C.get_split(cfg)
+    comment = global_params['comment']
     
     logger.info(f'meta_df: {df.shape}')
     output_dir = os.getcwd()
@@ -60,7 +61,8 @@ def run (cfg: DictConfig) -> None:
 
     model_paths = {}
 
-    x_bounds = [0, num_epoch]
+    n_epoch = cfg['globals']['num_epochs']
+    x_bounds = [0, n_epoch]
     y_bounds = [0,1]
 
 
@@ -103,9 +105,9 @@ def run (cfg: DictConfig) -> None:
         early_stopping = EarlyStopping(**cfg['early_stopping'],verbose=True, path=model_path,device=device)
         
         
-        n_epoch = cfg['globals']['num_epochs']
+        
         mb = master_bar(range(1,n_epoch))
-
+        print(n_epoch)
         for epoch in mb:
             logger.info(f'::: epoch: {epoch}/{n_epoch} :::')            
             
@@ -135,11 +137,12 @@ def run (cfg: DictConfig) -> None:
                 break
 
             t = np.arange(epoch)
-            graphs = [[t,losses_train],[t,losses_valid],[t,losses_rmse_train/10],[t,losses_rmse_valid/10]]
+            graphs = [[t,losses_train],[t,losses_valid],[t,losses_rmse_train],[t,losses_rmse_valid]]
             mb.update_graph (graphs,x_bounds,y_bounds)
             mb.write('EPOCH: {0:02d}, Train loss: {1:10.5f}, Valid loss: {2:10.5f}, train loss(RMSE): {3:10.5f}, valid loss(RMSE): {4:10.5f}'.format(
             epoch, loss_train, loss_valid,loss_rmse_train,loss_rmse_valid))
 
+        '''
         rh.save_loss_figure(
             fold_i,
             epochs, losses_train,
@@ -158,6 +161,7 @@ def run (cfg: DictConfig) -> None:
             comment,
             output_dir
         )
+        '''
         logger.info(f'best_loss: {best_loss:.6f}')
     
     del train_loader

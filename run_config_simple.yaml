@@ -1,6 +1,6 @@
 globals:
-  comment: aa
-  debug: false
+  comment: null
+  debug: true
   device: cuda
   ex_name: 000_base_line_search
   num_epochs: 100
@@ -23,15 +23,15 @@ dataset:
 loader:
   test:
     batch_size: 1
-    num_workers: 8
+    num_workers: 0
     shuffle: false
   train:
     batch_size: 32
-    num_workers: 8
+    num_workers: 0
     shuffle: true
   valid:
     batch_size: 16
-    num_workers: 8
+    num_workers: 0
     shuffle: false
 split:
   name: StratifiedKFold
@@ -63,4 +63,3 @@ hydra:
     formatters:
       simple:
         format: '[%(asctime)s][%(name)s] line%(lineno)d [%(levelname)s] %(message)s'
-

@@ -21,7 +21,7 @@ def set_seed(seed: int = 42):
         torch.backends.cudnn.benchmark = True  # type: ignore
 
 def get_debug_config(config):
-    config['globals']['num_epochs'] = 1
+    config['globals']['num_epochs'] = 3
     config['split']['params']['n_splits'] = 2
     return config
 
