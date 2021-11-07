@@ -60,6 +60,10 @@ def run (cfg: DictConfig) -> None:
 
     model_paths = {}
 
+    x_bounds = [0, num_epoch]
+    y_bounds = [0,1]
+
+
     for fold_i, (trn_idx, val_idx) in enumerate(
         splitter.split(df, y=df['Pawpularity'])
         ):
@@ -129,6 +133,12 @@ def run (cfg: DictConfig) -> None:
             if early_stopping.early_stop:
                 logger.info("Early stopping")
                 break
+
+            t = np.arange(epoch)
+            graphs = [[t,losses_train],[t,losses_valid],[t,losses_rmse_train/10],[t,losses_rmse_valid/10]]
+            mb.update_graph (graphs,x_bounds,y_bounds)
+            mb.write('EPOCH: {0:02d}, Train loss: {1:10.5f}, Valid loss: {2:10.5f}, train loss(RMSE): {3:10.5f}, valid loss(RMSE): {4:10.5f}'.format(
+            epoch, loss_train, loss_valid,loss_rmse_train,loss_rmse_valid))
 
         rh.save_loss_figure(
             fold_i,
