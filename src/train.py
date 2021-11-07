@@ -42,7 +42,7 @@ def train(model, device, train_loader, optimizer, scheduler, loss_func,use_amp):
 
 
 def train_fastprogress(model, device, train_loader, optimizer, scheduler, loss_func,use_amp,mb):
-    scaler = GradScaler(enabled=use_amp)
+#    scaler = GradScaler(enabled=use_amp)
     model.train()
     epoch_train_loss = 0
     epoch_train_loss_rmse = 0
@@ -50,18 +50,20 @@ def train_fastprogress(model, device, train_loader, optimizer, scheduler, loss_f
     loader = train_loader.__iter__()
     for _ in progress_bar(range(len(loader)),parent=mb): 
         
-        data,target = loader.next()
+        data, target = loader.next()
         data, target = data.to(device), target.to(device)
-        with autocast(enabled=use_amp):
-            output = model(data)
-            loss = loss_func(output.view_as(target), target)
-            rmse_loss = RMSELoss(output.view_as(target), target)*100
+        #with autocast(enabled=use_amp):
+        output = model(data)
+        loss = loss_func(output.view_as(target), target)
+        rmse_loss = RMSELoss(output.view_as(target), target)*100
             
         
         optimizer.zero_grad()
-        scaler.scale(loss).backward
-        scaler.step(optimizer)
-        scaler.update()
+        loss.backward()
+        optimizer.step()
+#        scaler.scale(loss).backward
+#        scaler.step(optimizer)
+#        scaler.update()
 
 
         epoch_train_loss += loss.item()
