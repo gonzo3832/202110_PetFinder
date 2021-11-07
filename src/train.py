@@ -52,7 +52,6 @@ def train_fastprogress(model, device, train_loader, optimizer, scheduler, loss_f
         
         data,target = loader.next()
         data, target = data.to(device), target.to(device)
-        optimizer.zero_grad()
         with autocast(enabled=use_amp):
             output = model(data)
             loss = loss_func(output.view_as(target), target)
