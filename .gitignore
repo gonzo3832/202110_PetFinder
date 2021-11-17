@@ -6,3 +6,4 @@ model_paths.pkl
 input/
 src/__pycache__/
 outputs
+mlruns/
