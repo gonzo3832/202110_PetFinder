@@ -32,7 +32,7 @@ from fastprogress import master_bar, progress_bar
 cmd = "git rev-parse --short HEAD"
 hash_ = subprocess.check_output(cmd.split()).strip().decode('utf-8') #subprocessで上のコマンドを実行したのち、結果を格納
 logger = logging.getLogger(__name__)
-config_path = './config'
+config_path = '.'
 config_name = 'run_config_simple.yaml'
 
 @hydra.main(config_path=config_path, config_name=config_name)
