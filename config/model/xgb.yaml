@@ -1,0 +1,7 @@
+name: xgb
+params:
+  random_seed: 1234
+  learning_rate: 0.05
+  max_depth: 10
+  colsample_bytree: 0.38577264365761177
+  sublsample: 0.5662736374266897

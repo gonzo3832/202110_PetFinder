@@ -1,0 +1,6 @@
+name: StratifiedKFold
+params:
+  n_splits: 4
+  random_state: 42
+  shuffle: true
+  

@@ -1,0 +1,4 @@
+name: DefaultDataset
+params:
+  aug: true
+  img_size: 256
