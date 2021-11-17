@@ -2,7 +2,7 @@ import logging
 import torch
 from torch.cuda.amp import GradScaler, autocast
 import gc
-from utils import RMSELoss
+import criterion
 from fastprogress import progress_bar
 
 
@@ -41,30 +41,30 @@ def train(model, device, train_loader, optimizer, scheduler, loss_func,use_amp):
     return loss,loss_rmse
 
 
-def train_fastprogress(model, device, train_loader, optimizer, scheduler, loss_func,use_amp,mb):
-#    scaler = GradScaler(enabled=use_amp)
+def train_fastprogress(model, device, train_loader, optimizer, scheduler, loss_func,mb):
     model.train()
+
     epoch_train_loss = 0
     epoch_train_loss_rmse = 0
+    RMSE = criterion.RMSELoss()
 
     loader = train_loader.__iter__()
+
+
     for _ in progress_bar(range(len(loader)),parent=mb): 
         
         data, target = loader.next()
         data, target = data.to(device), target.to(device)
-        #with autocast(enabled=use_amp):
         output = model(data)
-        loss = loss_func(output.view_as(target), target)
-        rmse_loss = RMSELoss(output.view_as(target), target)*100
+        print(type(output))
+        print(type(target))
+        loss = loss_func(output, target)
+        rmse_loss = RMSE(torch.sigmoid(output), target)*100
             
         
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-#        scaler.scale(loss).backward
-#        scaler.step(optimizer)
-#        scaler.update()
-
 
         epoch_train_loss += loss.item()
         epoch_train_loss_rmse += rmse_loss.item()

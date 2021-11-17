@@ -7,11 +7,41 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.utils.data as data
-from torchvision.transforms import transforms
+from torchvision import transforms,datasets
+#from torchvision import datasets
+
 from PIL import Image,ImageFilter
 
 import glob
 import re
+
+
+class MNIST_test(datasets.MNIST):
+    '''
+    テスト用。ラベルを0-1にしてある。
+    
+    '''
+    def __init__(self,
+                 df: pd.DataFrame,
+                 datadir,
+                 phase: str,
+                 config={},):
+        super().__init__('data',
+        train = True,
+        transform = transforms.Compose([
+            transforms.Grayscale(3),
+            transforms.ToTensor(),
+        ]),
+        download=True)
+        
+        self.data  = self.data[:1000,:,:]
+        self.targets = self.targets[:1000]
+
+    def __getitem__(self,index):
+        img,target = super().__getitem__(index)
+        target = target/10
+        return img.float(),target
+
 
 
 class DefaultDataset(data.Dataset):

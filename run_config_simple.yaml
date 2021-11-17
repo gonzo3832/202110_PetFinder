@@ -1,7 +1,6 @@
 globals:
-  comment: null
-  debug: true
-  device: cuda
+  comment: test_MNIST
+  debug: false
   ex_name: 000_base_line_search
   num_epochs: 100
   seed: 42
@@ -16,7 +15,7 @@ data:
   train_data_dir: input/petfinder-pawpularity-score/train
   train_df_path: input/petfinder-pawpularity-score/train.csv
 dataset:
-  name: DefaultDataset
+  name: MNIST_test
   params:
     aug: true
     img_size: 256
@@ -26,7 +25,7 @@ loader:
     num_workers: 0
     shuffle: false
   train:
-    batch_size: 32
+    batch_size: 8
     num_workers: 0
     shuffle: true
   valid:
@@ -40,7 +39,7 @@ split:
     random_state: 42
     shuffle: true
 loss:
-  name: BCEWithLogitsLoss
+  name: RMSELoss
   params: null
 optimizer:
   name: Adam

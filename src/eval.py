@@ -20,8 +20,8 @@ def get_epoch_loss_score(model, device, valid_loader, loss_func):
         data, target = data.to(device), target.to(device)
         with torch.no_grad():
             output = model(data)
-        loss = loss_func(output.view_as(target), target)
-        rmse_loss = RMSELoss(output.view_as(target), target)*100
+        loss = loss_func(output, target)
+        rmse_loss = RMSELoss(torch.sigmoid(output), target)*100
 
         epoch_valid_loss += loss.item()
         epoch_valid_loss_rmse += rmse_loss.item()

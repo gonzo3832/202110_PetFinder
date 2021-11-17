@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
+import torchvision 
 
 sys.path.insert(0, f'{os.getcwd()}/src')
 import datasets
@@ -15,7 +16,7 @@ import criterion
 '''
 '''
 
-def get_device(device: str):
+def get_device():
     if torch.cuda.is_available():
         return 'cuda'
     else:
@@ -55,7 +56,18 @@ def get_loader(df: pd.DataFrame,
     dataset_config = config["dataset"]
     name = dataset_config['name']
     loader_config = config["loader"][phase]
-
+    '''
+    if name == 'MNIST':
+        transform = torchvision.transforms.Compose([
+            torchvision.transforms.Grayscale(3),
+            torchvision.transforms.ToTensor(), 
+            lambda x: x.float()
+#            torchvision.transforms.ConvertImageDtype(torch.float), 
+            
+        ])
+        dataset =  torchvision.datasets.MNIST('data',train = True, transform = transform,download=True)
+    else:
+    '''
     dataset = datasets.__getattribute__(name)(
             df,
             datadir=datadir,

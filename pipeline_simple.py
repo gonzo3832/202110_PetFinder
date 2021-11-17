@@ -2,7 +2,6 @@
 from typing import Awaitable
 import warnings
 
-from numpy.lib.shape_base import apply_along_axis
 warnings.filterwarnings('ignore')
 import os
 import gc
@@ -10,9 +9,7 @@ import hydra
 import torch
 import logging
 import subprocess
-from fastprogress import progress_bar
 from omegaconf import DictConfig
-from omegaconf import OmegaConf
 import pandas as pd
 import numpy as np
 
@@ -21,9 +18,8 @@ from src import utils
 from src import configuration as C
 from src import models
 from src.early_stopping import EarlyStopping
-from src.train import train, train_fastprogress
+from src.train import train_fastprogress
 from src.eval import get_epoch_loss_score
-from src.predict import predict
 import src.result_handler as rh
 import dill
 import yaml
@@ -49,7 +45,7 @@ def run (cfg: DictConfig) -> None:
 
     global_params = cfg["globals"]
     utils.set_seed(global_params['seed'])
-    device = C.get_device(global_params["device"])
+    device = C.get_device()
     splitter = C.get_split(cfg)
     comment = global_params['comment']
     
@@ -80,7 +76,8 @@ def run (cfg: DictConfig) -> None:
         
         logger.info(f'trn_df: {trn_df.shape}')
         logger.info(f'val_df: {val_df.shape}')
-    
+
+        logger.info(f"dataset: { cfg['dataset']['name']}")
         train_loader = C.get_loader(trn_df, datadir, cfg, 'train')
         valid_loader = C.get_loader(val_df, datadir, cfg, 'valid')
 
@@ -107,13 +104,12 @@ def run (cfg: DictConfig) -> None:
         
         
         mb = master_bar(range(1,n_epoch))
-        print(n_epoch)
         for epoch in mb:
             logger.info(f'::: epoch: {epoch}/{n_epoch} :::')            
             
             loss_train ,loss_rmse_train= train_fastprogress(
                 model, device, train_loader, optimizer,
-                scheduler, criterion, cfg['globals']['use_amp'],mb
+                scheduler, criterion,mb
             )    
             
             loss_valid ,loss_rmse_valid = get_epoch_loss_score(
