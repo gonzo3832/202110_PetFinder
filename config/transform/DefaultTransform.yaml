@@ -1,0 +1,15 @@
+transform_dict:
+  train: transforms.Compose([
+    transforms.Resize((256, 256)),
+    transforms.CenterCrop((224, 224)),
+    transforms.RandomRotation(10),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=mean, std=std),
+    ])
+
+  val: transforms.Compose([
+      transforms.Resize((256, 256)),
+      transforms.CenterCrop((224, 224)),
+      transforms.ToTensor(),
+      transforms.Normalize(mean=mean, std=std),
+    ])
