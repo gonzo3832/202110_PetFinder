@@ -23,6 +23,7 @@ from src.eval import valid
 import yaml
 from fastprogress import master_bar
 from src.mlflow_writer import MlflowWriter
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 config_path = "./config"
@@ -88,14 +89,14 @@ def run(cfg: DictConfig) -> None:
 
     # ------- for epoch -----------
     mb = master_bar(range(n_epoch))
-    for epoch in mb:
+    for epoch in tqdm(range(n_epoch)):
         logger.info(f"EPOCH:{epoch}")
         loss_train = 0
         loss_valid = 0
 
         # --------- train loop -----------
         loss_train = train_simple(
-            model, device, train_loader, optimizer, scheduler, loss_func, mb
+            model, device, train_loader, optimizer, scheduler, loss_func
         )
         writer.log_metric_step("train loss", loss_train, step=epoch)
         losses_train.append(loss_train)

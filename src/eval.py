@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import gc
+from tqdm import tqdm
 
 def valid(model, device, valid_loader, loss_func):
     model.eval()
@@ -8,7 +9,7 @@ def valid(model, device, valid_loader, loss_func):
     pred_list = []
     true_list = []
 
-    for data, target in valid_loader:
+    for _,(data, target) in tqdm(enumerate(valid_loader), total=len(valid_loader), leave=False):
         data = [data.to(device) for data in data ]
         target =target.to(device)
         with torch.no_grad():
