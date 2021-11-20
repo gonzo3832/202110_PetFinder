@@ -6,7 +6,6 @@ from fastprogress import progress_bar
 
 def train_simple(model, device, train_loader, optimizer, scheduler, loss_func,mb):
     model.train()
-    model.to(device)
     loss = 0
 
     loader = train_loader.__iter__()

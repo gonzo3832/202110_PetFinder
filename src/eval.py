@@ -4,7 +4,6 @@ import gc
 
 def valid(model, device, valid_loader, loss_func):
     model.eval()
-    model.to(device)
     loss = 0
     pred_list = []
     true_list = []

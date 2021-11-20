@@ -26,7 +26,7 @@ from src.mlflow_writer import MlflowWriter
 
 logger = logging.getLogger(__name__)
 config_path = "./config"
-config_name = "run.yaml"
+config_name = "debug_config.yaml"
 
 
 @hydra.main(config_path=config_path, config_name=config_name)
@@ -64,7 +64,7 @@ def run(cfg: DictConfig) -> None:
     valid_loader = C.get_loader(valid_df, datadir, cfg, "valid")
 
     # ------------ init model --------------------
-    model = models.get_model(cfg)
+    model = models.get_model(cfg).to(device)
 
     # ------------ init optimizer --------------
     optimizer = C.get_optimizer(model, cfg)

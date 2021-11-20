@@ -1,9 +1,9 @@
 globals:
-  ex_name: null
-  debug: False
+  ex_name: test5
+  debug: true
   num_epochs: 100
   seed: 42
-  user: 
+  user: miyazaki
 data:
   test_data_dir: ./input/petfinder-pawpularity-score/test
   test_df_path: ./input/petfinder-pawpularity-score/test.csv
