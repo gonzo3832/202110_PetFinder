@@ -1,6 +1,6 @@
 globals:
-  ex_name: test3
-  debug: false
+  ex_name: null
+  debug: true
   num_epochs: 100
   seed: 42
   user: miyazaki

@@ -4,6 +4,6 @@ data_ignore/
 docker-compose.yml
 model_paths.pkl
 input/
-src/__pycache__/
+**/__pycache__
 outputs
 mlruns/

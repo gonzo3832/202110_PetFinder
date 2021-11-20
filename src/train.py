@@ -6,8 +6,6 @@ import criterion
 from fastprogress import progress_bar
 
 
-
-
 def train(model, device, train_loader, optimizer, scheduler, loss_func,use_amp):
     scaler = GradScaler(enabled=use_amp)
     model.train()

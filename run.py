@@ -1,5 +1,6 @@
 import warnings
-warnings.filterwarnings('ignore')
+
+warnings.filterwarnings("ignore")
 
 import os
 import gc
@@ -10,9 +11,8 @@ from omegaconf import DictConfig
 import pandas as pd
 import numpy as np
 import mlflow
-from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME,MLFLOW_USER,MLFLOW_SOURCE_NAME,MLFLOW_LOGGED_MODELS
+from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME, MLFLOW_USER
 import sklearn.model_selection as sms
-
 
 from src import utils
 from src import configuration as C
@@ -25,47 +25,56 @@ from fastprogress import master_bar
 from src.mlflow_writer import MlflowWriter
 
 logger = logging.getLogger(__name__)
-config_path = './config'
-config_name = 'run.yaml'
+config_path = "./config"
+config_name = "run.yaml"
 
 
 @hydra.main(config_path=config_path, config_name=config_name)
-def run (cfg: DictConfig) -> None:
+def run(cfg: DictConfig) -> None:
 
-    mlflow.set_tracking_uri('file://' + hydra.utils.get_original_cwd() + '/mlruns')
-    writer = MlflowWriter(cfg['globals']['ex_name'])
+    # --------------- init logger,etc... -----------------
+    mlflow.set_tracking_uri("file://" + hydra.utils.get_original_cwd() + "/mlruns")
+    writer = MlflowWriter(cfg["globals"]["ex_name"])
     tags = {
-        MLFLOW_RUN_NAME : f"{cfg['dataset']['name']} - {cfg['model']['name']}",
-        MLFLOW_USER : cfg['globals']['user'],
-            }
+        MLFLOW_RUN_NAME: f"{cfg['dataset']['name']} - {cfg['model']['name']}",
+        MLFLOW_USER: cfg["globals"]["user"],
+    }
     writer.create_new_run(tags)
 
+    global_params = cfg["globals"]
+    utils.set_seed(global_params["seed"])
+    device = C.get_device()
+
+    # -------------- init data ------------------
     df, datadir = C.get_metadata(cfg)
-    if cfg['globals']['debug']:
-        logger.info('::: set debug mode :::')
+    if cfg["globals"]["debug"]:
+        logger.info("::: set debug mode :::")
         cfg = utils.get_debug_config(cfg)
         df = utils.get_debug_df(df)
 
-    global_params = cfg["globals"]
-    utils.set_seed(global_params['seed'])
-    device = C.get_device()
-
     # ToDo: 層化抽出
-    train_df, valid_df = sms.train_test_split(df, test_size = 0.2)
-    train_df = utils.min_max_normalize(train_df,'Pawpularity',0,100)
-    valid_df = utils.min_max_normalize(valid_df,'Pawpularity',0,100)
-    logger.info(f'train_df: {train_df.shape}')
-    logger.info(f'valid_df: {valid_df.shape}')
+    train_df, valid_df = sms.train_test_split(df, test_size=0.2, shuffle=True)
+    train_df = utils.min_max_normalize(train_df, "Pawpularity", 0, 100)
+    valid_df = utils.min_max_normalize(valid_df, "Pawpularity", 0, 100)
 
-    train_loader = C.get_loader(train_df,datadir,cfg,'train')
-    valid_loader = C.get_loader(valid_df,datadir,cfg,'valid')
+    logger.info(f"train_df: {train_df.shape}")
+    logger.info(f"valid_df: {valid_df.shape}")
 
+    train_loader = C.get_loader(train_df, datadir, cfg, "train")
+    valid_loader = C.get_loader(valid_df, datadir, cfg, "valid")
+
+    # ------------ init model --------------------
     model = models.get_model(cfg)
-    optimizer = C.get_optimizer(model,cfg)
-    scheduler = C.get_scheduler(optimizer,cfg)
-    loss_func = C.get_criterion(cfg)
-    early_stopping = ES_simple(**cfg['callback']['early_stopping'],verbose=True )
 
+    # ------------ init optimizer --------------
+    optimizer = C.get_optimizer(model, cfg)
+    scheduler = C.get_scheduler(optimizer, cfg)
+
+    # ----------- init loss, ES---------------
+    loss_func = C.get_criterion(cfg)
+    early_stopping = ES_simple(**cfg["callback"]["early_stopping"], verbose=True)
+
+    # ---------- init tracker ------------
     best_loss = 0
     losses_train = []
     losses_valid = []
@@ -73,100 +82,90 @@ def run (cfg: DictConfig) -> None:
     epochs_test = []
     losses_test = []
 
-    n_epoch = cfg['globals']['num_epochs']
+    n_epoch = cfg["globals"]["num_epochs"]
     x_bounds = [0, n_epoch]
-    y_bounds = [0,10]
+    y_bounds = [0, 10]
 
+    # ------- for epoch -----------
     mb = master_bar(range(n_epoch))
     for epoch in mb:
-        logger.info(f'EPOCH:{epoch}')
+        logger.info(f"EPOCH:{epoch}")
         loss_train = 0
         loss_valid = 0
 
-        loss_train = train_simple(model, device, train_loader, optimizer, scheduler, loss_func, mb)
-        writer.log_metric_step('train loss',loss_train,step=epoch)
+        # --------- train loop -----------
+        loss_train = train_simple(
+            model, device, train_loader, optimizer, scheduler, loss_func, mb
+        )
+        writer.log_metric_step("train loss", loss_train, step=epoch)
         losses_train.append(loss_train)
 
-        loss_valid, y_pred, y_true =valid(model, device, valid_loader, loss_func)
-        writer.log_metric_step('valid loss',loss_valid,step=epoch)
+        # --------- valid loop ----------
+        loss_valid, y_pred, y_true = valid(model, device, valid_loader, loss_func)
+        writer.log_metric_step("valid loss", loss_valid, step=epoch)
         losses_valid.append(loss_valid)
 
-        logger.info(f'loss_train: {loss_train:.4f}, loss_valid: {loss_valid:.4f}')
-        logger.info(f'y_pred : { [round(y, 1) for y in y_pred[:10]] }')
-        logger.info(f'y_true : { [round(y ,1) for y in y_true[:10]]}')
-        
+        # --------- inform result --------
+        logger.info(f"loss_train: {loss_train:.4f}, loss_valid: {loss_valid:.4f}")
+        logger.info(f"y_pred : { [round(y, 1) for y in y_pred[:10]] }")
+        logger.info(f"y_true : { [round(y ,1) for y in y_true[:10]]}")
+
+        # -------- write loss curve ------
+        t = np.arange(epoch)
+        graphs = [[t, losses_train], [t, losses_valid]]
+        mb.update_graph(graphs, x_bounds, y_bounds)
+        mb.write( f"EPOCH: {epoch:02d}, Training loss: {loss_train:10.5f}, Validation loss: {loss_valid:10.5f}" )
+
+        # --------- loss check ------------
         is_update = early_stopping(loss_valid)
         if is_update:
             best_loss = loss_valid
         if early_stopping.early_stop:
             logger.info("Early stopping")
-            break 
-            
-        if (epoch + 1) % 10 == 0:
-            logger.info('::::       prediction         ::::')
+            break
 
-            test_df, test_data_dir = C.get_metadata_test(cfg)
-            logger.info(f'test_df: {test_df.shape}')
+    logger.info(f"best valid loss: {best_loss:.6f}")
 
-            test_loader = C.get_loader(test_df,test_data_dir,cfg,'test')
-            loss_test,test_pred,test_true = valid(model, device, test_loader, loss_func)
-            #test_true = test_df['temp'].to_numpy()
-            logger.info(f'test_pred : { [round(y, 1) for y in test_pred[:10]] }')
-            logger.info(f'test_true : { [round(y ,1) for y in test_true[:10]]}')
-            #loss_test = np.sqrt(mean_squared_error(test_true,test_pred))
-            writer.log_metric_step('test loss',loss_test,step=epoch)
-            epochs_test.append(epoch)
-            losses_test.append(loss_test)
-
-            logger.info('::::          end            ::::')
-        t = np.arange(epoch)
-        graphs = [[t, losses_train],[t, losses_valid]]
-        mb.update_graph(graphs,x_bounds,y_bounds)
-        mb.write('EPOCH: {0:02d}, Training loss: {1:10.5f}, Validation loss: {2:10.5f}'.format(
-                epoch, loss_train, loss_valid)
-                )
-
-    logger.info(f'best valid loss: {best_loss:.6f}')
-
+    # --------- output logs -------------
     losses_df = pd.DataFrame()
-    losses_df['loss_train'] = losses_train
-    losses_df['loss_valid'] = losses_valid
-    losses_df.to_csv('losses.csv')
-    writer.log_artifact('losses.csv')
+    losses_df["loss_train"] = losses_train
+    losses_df["loss_valid"] = losses_valid
+    losses_df.to_csv("losses.csv")
+    writer.log_artifact("losses.csv")
 
     losses_test_df = pd.DataFrame()
-    losses_test_df['epochs'] = epochs_test
-    losses_test_df['loss_test'] = losses_test
-    losses_test_df.to_csv('losses_test.csv')
-    writer.log_artifact('losses_test.csv')
+    losses_test_df["epochs"] = epochs_test
+    losses_test_df["loss_test"] = losses_test
+    losses_test_df.to_csv("losses_test.csv")
+    writer.log_artifact("losses_test.csv")
 
+    # ----------clear cache ---------
     del train_loader
     del valid_loader
     del model
     del optimizer
     del scheduler
-
     gc.collect()
     torch.cuda.empty_cache()
-    
-    logger.info('::: success :::\n\n\n')
-    writer.set_terminated()  
+
+    # ------------- end ----------
+    logger.info("::: success :::\n\n\n")
+    writer.set_terminated()
 
 
 if __name__ == "__main__":
-#    mlflow.set_tracking_uri('mlruns')
-    yaml_path = os.path.join(config_path,config_name)
-    
-    with open(yaml_path,'r+') as f:
+    yaml_path = os.path.join(config_path, config_name)
+
+    with open(yaml_path, "r+") as f:
         cfg = yaml.safe_load(f)
-        if cfg['globals']['ex_name'] == None:
-            ex_name = input('EXPERIMENT_NAME：')
-            cfg['globals']['ex_name'] = ex_name
+        if cfg["globals"]["ex_name"] == None:
+            ex_name = input("EXPERIMENT_NAME：")
+            cfg["globals"]["ex_name"] = ex_name
         f.seek(0)
-        yaml.safe_dump(cfg, f,sort_keys=False)
+        yaml.safe_dump(cfg, f, sort_keys=False)
 
     run()
 
-    cfg['globals']['ex_name'] = None
-    with open(yaml_path,'w') as f:
-        yaml.safe_dump(cfg,f,sort_keys=False)
+    cfg["globals"]["ex_name"] = None
+    with open(yaml_path, "w") as f:
+        yaml.safe_dump(cfg, f, sort_keys=False)
