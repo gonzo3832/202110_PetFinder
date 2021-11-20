@@ -9,7 +9,6 @@ import torch
 import logging
 from omegaconf import DictConfig
 import pandas as pd
-import numpy as np
 import mlflow
 from mlflow.utils.mlflow_tags import MLFLOW_RUN_NAME, MLFLOW_USER
 import sklearn.model_selection as sms
@@ -21,7 +20,6 @@ from src.early_stopping import EarlyStopping
 from src.train import train_simple
 from src.eval import valid
 import yaml
-from fastprogress import master_bar
 from src.mlflow_writer import MlflowWriter
 from tqdm import tqdm
 
@@ -84,11 +82,8 @@ def run(cfg: DictConfig) -> None:
     losses_test = []
 
     n_epoch = cfg["globals"]["num_epochs"]
-    x_bounds = [0, n_epoch]
-    y_bounds = [0, 10]
 
     # ------- for epoch -----------
-    mb = master_bar(range(n_epoch))
     for epoch in tqdm(range(n_epoch)):
         logger.info(f"EPOCH:{epoch}")
         loss_train = 0
@@ -110,13 +105,7 @@ def run(cfg: DictConfig) -> None:
         logger.info(f"loss_train: {loss_train:.4f}, loss_valid: {loss_valid:.4f}")
         logger.info(f"y_pred : { [round(y, 1) for y in y_pred[:10]] }")
         logger.info(f"y_true : { [round(y ,1) for y in y_true[:10]] }")
-
-        # -------- write loss curve ------
-        t = np.arange(epoch)
-        graphs = [[t, losses_train], [t, losses_valid]]
-        mb.update_graph(graphs, x_bounds, y_bounds)
-        mb.write( f"EPOCH: {epoch:02d}, Training loss: {loss_train:10.5f}, Validation loss: {loss_valid:10.5f}" )
-
+        logger.info( f"EPOCH: {epoch:02d}, Training loss: {loss_train:10.5f}, Validation loss: {loss_valid:10.5f}" )
         # --------- loss check ------------
         is_update = early_stopping(loss_valid,model,debug=False)
         if is_update:
