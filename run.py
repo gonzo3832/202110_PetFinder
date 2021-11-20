@@ -26,7 +26,7 @@ from src.mlflow_writer import MlflowWriter
 
 logger = logging.getLogger(__name__)
 config_path = "./config"
-config_name = "debug_config.yaml"
+config_name = "run_config.yaml"
 
 
 @hydra.main(config_path=config_path, config_name=config_name)
