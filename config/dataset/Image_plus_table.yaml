@@ -1,0 +1,4 @@
+name: Image_plus_table
+params:
+  aug: true
+  img_size: 256

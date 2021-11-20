@@ -7,7 +7,7 @@ class EarlyStopping:
     Early stops the training if validation loss doesn't improve after a given patience.
     https://github.com/Bjarten/early-stopping-pytorch/blob/master/pytorchtools.py
     """
-    def __init__(self, patience=7, verbose=False, delta=0, path='checkpoint.pt', trace_func=print, device = 'cpu'):
+    def __init__(self, patience=7, verbose=False, delta=0, path='weight.pth', trace_func=print, device = 'cpu'):
         """
         Args:
             patience (int): How long to wait after last time validation loss improved.
@@ -60,5 +60,42 @@ class EarlyStopping:
             else:
                 torch.save(model.state_dict(), self.path)
 
+        self.val_loss_min = val_loss
+
+class ES_simple:
+    """
+    Early stopping classの簡易版
+    モデルウェイトの出力はしない。
+    """
+    def __init__(self, patience=7, verbose=False, delta=0,trace_func=print):
+        self.patience = patience
+        self.verbose = verbose
+        self.counter = 0
+        self.best_score = None
+        self.early_stop = False
+        self.val_loss_min = np.Inf
+        self.delta = delta
+        self.trace_func = trace_func
+    def __call__(self, val_loss):
+        score = -val_loss
+        is_update = False
+        if self.best_score is None:
+            self.best_score = score
+            self.call_message(val_loss)
+        elif score < self.best_score + self.delta:
+            self.counter += 1
+            self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
+            if self.counter >= self.patience:
+                self.early_stop = True
+        else:
+            self.best_score = score
+            self.call_message(val_loss)
+            self.counter = 0
+            is_update = True
+        return is_update
+
+    def call_message(self, val_loss):
+        if self.verbose:
+            self.trace_func(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).')
         self.val_loss_min = val_loss
 
