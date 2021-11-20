@@ -17,7 +17,7 @@ import sklearn.model_selection as sms
 from src import utils
 from src import configuration as C
 from src import models
-from src.early_stopping import ES_simple
+from src.early_stopping import EarlyStopping
 from src.train import train_simple
 from src.eval import valid
 import yaml
@@ -72,7 +72,7 @@ def run(cfg: DictConfig) -> None:
 
     # ----------- init loss, ES---------------
     loss_func = C.get_criterion(cfg)
-    early_stopping = ES_simple(**cfg["callback"]["early_stopping"], verbose=True)
+    early_stopping = EarlyStopping(**cfg["callback"]["early_stopping"], verbose=True)
 
     # ---------- init tracker ------------
     best_loss = 0
@@ -117,7 +117,7 @@ def run(cfg: DictConfig) -> None:
         mb.write( f"EPOCH: {epoch:02d}, Training loss: {loss_train:10.5f}, Validation loss: {loss_valid:10.5f}" )
 
         # --------- loss check ------------
-        is_update = early_stopping(loss_valid)
+        is_update = early_stopping(loss_valid,model,debug=cfg["globals"]["debug"])
         if is_update:
             best_loss = loss_valid
         if early_stopping.early_stop:
@@ -138,6 +138,8 @@ def run(cfg: DictConfig) -> None:
     losses_test_df["loss_test"] = losses_test
     losses_test_df.to_csv("losses_test.csv")
     writer.log_artifact("losses_test.csv")
+
+    writer.log_artifact("weight.pth")
 
     # ----------clear cache ---------
     del train_loader
