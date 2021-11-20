@@ -1,6 +1,6 @@
 globals:
   ex_name: null
-  debug: False
+  debug: true
   num_epochs: 100
   seed: 42
   user: miyazaki
@@ -10,8 +10,8 @@ data:
   train_data_dir: ./input/petfinder-pawpularity-score/train
   train_df_path: ./input/petfinder-pawpularity-score/train.csv
 defaults:
-- model: EffNetV2_b0
-- dataset: DefaultDataset
+- model: EffV2_plus_table
+- dataset: Image_plus_table
 - loader: DefaultDataloader
 - split: StratifiedKFold
 - optimizer: Adam

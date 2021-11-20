@@ -4,9 +4,9 @@ test:
   shuffle: false
 train:
   batch_size: 32
-  num_workers: 8
+  num_workers: 0
   shuffle: true
 valid:
   batch_size: 16
-  num_workers: 8
+  num_workers: 0
   shuffle: false

@@ -108,7 +108,7 @@ def run(cfg: DictConfig) -> None:
         # --------- inform result --------
         logger.info(f"loss_train: {loss_train:.4f}, loss_valid: {loss_valid:.4f}")
         logger.info(f"y_pred : { [round(y, 1) for y in y_pred[:10]] }")
-        logger.info(f"y_true : { [round(y ,1) for y in y_true[:10]]}")
+        logger.info(f"y_true : { [round(y ,1) for y in y_true[:10]] }")
 
         # -------- write loss curve ------
         t = np.arange(epoch)
@@ -117,7 +117,7 @@ def run(cfg: DictConfig) -> None:
         mb.write( f"EPOCH: {epoch:02d}, Training loss: {loss_train:10.5f}, Validation loss: {loss_valid:10.5f}" )
 
         # --------- loss check ------------
-        is_update = early_stopping(loss_valid,model,debug=cfg["globals"]["debug"])
+        is_update = early_stopping(loss_valid,model,debug=False)
         if is_update:
             best_loss = loss_valid
         if early_stopping.early_stop:

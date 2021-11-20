@@ -10,9 +10,10 @@ def valid(model, device, valid_loader, loss_func):
     true_list = []
 
     for data, target in valid_loader:
-        data, target = data.to(device), target.to(device)
+        data = [data.to(device) for data in data ]
+        target =target.to(device)
         with torch.no_grad():
-            output = model(data)
+            output = model(*data)
         output = output.view_as(target)
         batch_loss = loss_func(output, target)
 

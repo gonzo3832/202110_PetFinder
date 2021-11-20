@@ -1,11 +1,42 @@
-import logging
 import torch
 from torch.cuda.amp import GradScaler, autocast
 import gc
 import criterion
 from fastprogress import progress_bar
 
+def train_simple(model, device, train_loader, optimizer, scheduler, loss_func,mb):
+    model.train()
+    model.to(device)
+    loss = 0
 
+    loader = train_loader.__iter__()
+
+    for _ in progress_bar( range(len(loader)),parent=mb):
+        data, target = loader.next()
+        data = [data.to(device) for data in data ]
+        target =target.to(device)
+        optimizer.zero_grad()
+        output = model(*data)
+        output = output.view_as(target)
+        
+        batch_loss = loss_func(output, target)
+            
+        optimizer.zero_grad()
+        batch_loss.backward()
+        optimizer.step()
+
+        loss += batch_loss.item()
+
+    scheduler.step()
+    loss = loss / len(train_loader)
+
+    gc.collect()
+    torch.cuda.empty_cache()
+    del data, target
+
+    return loss
+
+"""
 def train(model, device, train_loader, optimizer, scheduler, loss_func,use_amp):
     scaler = GradScaler(enabled=use_amp)
     model.train()
@@ -53,7 +84,7 @@ def train_fastprogress(model, device, train_loader, optimizer, scheduler, loss_f
         
         data, target = loader.next()
         data, target = data.to(device), target.to(device)
-        output = model(data)
+        output = model(*data)
         print(type(output))
         print(type(target))
         loss = loss_func(output, target)
@@ -76,34 +107,4 @@ def train_fastprogress(model, device, train_loader, optimizer, scheduler, loss_f
     del data,target
 
     return loss,loss_rmse
-
-def train_simple(model, device, train_loader, optimizer, scheduler, loss_func,mb):
-    model.train()
-    model.to(device)
-    loss = 0
-
-    loader = train_loader.__iter__()
-
-    for _ in progress_bar( range(len(loader)),parent=mb):
-        data, target = loader.next()
-        data, target = data.to(device), target.to(device)
-        optimizer.zero_grad()
-        output = model(data)
-        output = output.view_as(target)
-        
-        batch_loss = loss_func(output, target)
-            
-        optimizer.zero_grad()
-        batch_loss.backward()
-        optimizer.step()
-
-        loss += batch_loss.item()
-
-    scheduler.step()
-    loss = loss / len(train_loader)
-
-    gc.collect()
-    torch.cuda.empty_cache()
-    del data, target
-
-    return loss
+"""
