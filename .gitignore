@@ -7,7 +7,7 @@ model_paths.pkl
 **/.ipynb_checkpoints/
 outputs
 mlruns/
-notebook/001_initial_commit_binary_class.ipynb
+notebook/runs
 notebook/002_CNN_vs_CNN_plus_table.ipynb
 notebook/003_datasets.ipynb
 input/petfinder-pawpularity-score
