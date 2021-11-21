@@ -5,6 +5,7 @@ docker-compose.yml
 model_paths.pkl
 input/
 **/__pycache__/
+**/.ipynb_checkpoints/
 outputs
 mlruns/
 notebook/001_initial_commit_binary_class.ipynb
