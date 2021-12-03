@@ -1,17 +1,12 @@
 import torch
-from torch.cuda.amp import GradScaler, autocast
 import gc
-import criterion
-from fastprogress import progress_bar
+from tqdm import tqdm
 
-def train_simple(model, device, train_loader, optimizer, scheduler, loss_func,mb):
+def train_simple(model, device, train_loader, optimizer, scheduler, loss_func):
     model.train()
     loss = 0
 
-    loader = train_loader.__iter__()
-
-    for _ in progress_bar( range(len(loader)),parent=mb):
-        data, target = loader.next()
+    for _,(data,target) in tqdm(enumerate(train_loader), total=len(train_loader), leave=False):
         data = [data.to(device) for data in data ]
         target =target.to(device)
         optimizer.zero_grad()
